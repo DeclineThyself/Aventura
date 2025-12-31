@@ -1,4 +1,4 @@
-import type { APISettings, UISettings } from '$lib/types';
+import type { APISettings, UISettings, ThemeId } from '$lib/types';
 import { database } from '$lib/services/database';
 import {
   type AdvancedWizardSettings,
@@ -280,7 +280,11 @@ class SettingsStore {
       const showWordCount = await database.getSetting('show_word_count');
       const autoSave = await database.getSetting('auto_save');
 
-      if (theme) this.uiSettings.theme = theme as 'dark' | 'light';
+      if (theme) {
+        this.uiSettings.theme = theme as ThemeId;
+        // Apply theme immediately to prevent FOUC
+        this.applyTheme(theme as ThemeId);
+      }
       if (fontSize) this.uiSettings.fontSize = fontSize as 'small' | 'medium' | 'large';
       if (showWordCount) this.uiSettings.showWordCount = showWordCount === 'true';
       if (autoSave) this.uiSettings.autoSave = autoSave === 'true';
@@ -363,15 +367,25 @@ class SettingsStore {
     await database.setSetting('max_tokens', tokens.toString());
   }
 
-  async setTheme(theme: 'dark' | 'light') {
-    this.uiSettings.theme = theme;
-    await database.setSetting('theme', theme);
-    // Update the document class for Tailwind dark mode
-    if (theme === 'dark') {
+  /**
+   * Apply theme to the DOM using data-theme attribute and legacy dark class
+   */
+  private applyTheme(theme: ThemeId) {
+    // Set data-theme attribute for CSS custom properties
+    document.documentElement.setAttribute('data-theme', theme);
+
+    // Also maintain legacy 'dark' class for any Tailwind dark: utilities
+    if (theme === 'dark' || theme === 'ps2-lain') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+  }
+
+  async setTheme(theme: ThemeId) {
+    this.uiSettings.theme = theme;
+    await database.setSetting('theme', theme);
+    this.applyTheme(theme);
   }
 
   async setFontSize(size: 'small' | 'medium' | 'large') {

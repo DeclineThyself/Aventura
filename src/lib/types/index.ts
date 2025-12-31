@@ -181,8 +181,10 @@ export interface APISettings {
   maxTokens: number;
 }
 
+export type ThemeId = 'dark' | 'light' | 'ps2-lain';
+
 export interface UISettings {
-  theme: 'dark' | 'light';
+  theme: ThemeId;
   fontSize: 'small' | 'medium' | 'large';
   showWordCount: boolean;
   autoSave: boolean;

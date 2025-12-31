@@ -4,6 +4,7 @@
   import { settings, DEFAULT_SERVICE_PROMPTS } from '$lib/stores/settings.svelte';
   import { OpenRouterProvider } from '$lib/services/ai/openrouter';
   import type { ModelInfo } from '$lib/services/ai/types';
+  import type { ThemeId } from '$lib/types';
   import {
     type AdvancedWizardSettings,
     SCENARIO_MODEL,
@@ -367,11 +368,17 @@
             <select
               class="input"
               value={settings.uiSettings.theme}
-              onchange={(e) => settings.setTheme(e.currentTarget.value as 'dark' | 'light')}
+              onchange={(e) => settings.setTheme(e.currentTarget.value as ThemeId)}
             >
               <option value="dark">Dark</option>
               <option value="light">Light</option>
+              <option value="ps2-lain">PS2 Lain (CRT)</option>
             </select>
+            {#if settings.uiSettings.theme === 'ps2-lain'}
+              <p class="mt-1 text-xs text-surface-400">
+                Inspired by Serial Experiments Lain PS2 game aesthetics
+              </p>
+            {/if}
           </div>
 
           <div>
