@@ -179,6 +179,7 @@ export interface APISettings {
   defaultModel: string;
   temperature: number;
   maxTokens: number;
+  enableThinking: boolean; // Enable extended thinking/reasoning for supported models
 }
 
 export type ThemeId = 'dark' | 'light' | 'ps2-lain';

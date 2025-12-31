@@ -9,7 +9,7 @@
     type AdvancedWizardSettings,
     SCENARIO_MODEL,
   } from '$lib/services/ai/scenario';
-  import { X, Key, Cpu, Palette, RefreshCw, Search, Settings2, RotateCcw, ChevronDown, ChevronUp, Brain, BookOpen, Lightbulb } from 'lucide-svelte';
+  import { X, Key, Cpu, Palette, RefreshCw, Search, Settings2, RotateCcw, ChevronDown, ChevronUp, Brain, BookOpen, Lightbulb, Sparkles } from 'lucide-svelte';
 
   let activeTab = $state<'api' | 'generation' | 'ui' | 'advanced'>('api');
 
@@ -357,6 +357,39 @@
               <span>Shorter</span>
               <span>Longer</span>
             </div>
+          </div>
+
+          <!-- Extended Thinking Toggle -->
+          <div class="border-t border-surface-700 pt-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <Sparkles class="h-5 w-5 text-amber-400" />
+                <div>
+                  <label class="text-sm font-medium text-surface-300">Extended Thinking</label>
+                  <p class="text-xs text-surface-500">
+                    Enable reasoning for supported models (e.g., GLM 4.7, DeepSeek v3.2)
+                  </p>
+                </div>
+              </div>
+              <button
+                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                class:bg-accent-600={settings.apiSettings.enableThinking}
+                class:bg-surface-600={!settings.apiSettings.enableThinking}
+                onclick={() => settings.setEnableThinking(!settings.apiSettings.enableThinking)}
+                aria-label="Toggle extended thinking"
+              >
+                <span
+                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  class:translate-x-6={settings.apiSettings.enableThinking}
+                  class:translate-x-1={!settings.apiSettings.enableThinking}
+                ></span>
+              </button>
+            </div>
+            {#if settings.apiSettings.enableThinking}
+              <p class="mt-2 text-xs text-amber-400/80 ml-8">
+                The model will use internal reasoning to improve responses. Reasoning is not shown or stored.
+              </p>
+            {/if}
           </div>
         </div>
       {:else if activeTab === 'ui'}

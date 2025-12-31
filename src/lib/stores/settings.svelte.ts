@@ -29,10 +29,12 @@ NPCs should have distinct voices. Show body language and subtext.
 - Map each line to what is said, what is meant, what the body does
 
 ## Style
-- Write in second person, present tense (unless directed otherwise)
+- ALWAYS address the player as "you" in your narration (e.g., "You step forward..." not "I step forward...")
+- Write in present tense (unless directed otherwise)
 - Use vivid, immersive prose
 - Write 2-4 paragraphs per response
 - Balance action, dialogue, and description
+- When the player writes in first person ("I go left"), respond in second person ("You turn left...")
 </prose_architecture>
 
 <ending_instruction>
@@ -239,6 +241,7 @@ class SettingsStore {
     defaultModel: 'anthropic/claude-3.5-sonnet',
     temperature: 0.8,
     maxTokens: 1024,
+    enableThinking: false,
   });
 
   uiSettings = $state<UISettings>({
@@ -273,6 +276,10 @@ class SettingsStore {
       if (defaultModel) this.apiSettings.defaultModel = defaultModel;
       if (temperature) this.apiSettings.temperature = parseFloat(temperature);
       if (maxTokens) this.apiSettings.maxTokens = parseInt(maxTokens);
+
+      // Load thinking toggle
+      const enableThinking = await database.getSetting('enable_thinking');
+      if (enableThinking) this.apiSettings.enableThinking = enableThinking === 'true';
 
       // Load UI settings
       const theme = await database.getSetting('theme');
@@ -365,6 +372,11 @@ class SettingsStore {
   async setMaxTokens(tokens: number) {
     this.apiSettings.maxTokens = tokens;
     await database.setSetting('max_tokens', tokens.toString());
+  }
+
+  async setEnableThinking(enabled: boolean) {
+    this.apiSettings.enableThinking = enabled;
+    await database.setSetting('enable_thinking', enabled.toString());
   }
 
   /**

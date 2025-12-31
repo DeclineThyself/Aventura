@@ -70,11 +70,20 @@ class AIService {
       }
     }
 
+    // Build extra body for provider-specific options
+    const extraBody: Record<string, unknown> = {};
+    if (settings.apiSettings.enableThinking) {
+      // Enable extended thinking with a reasonable token budget
+      // Reasoning tokens are NOT included in responses, per user requirement
+      extraBody.reasoning = { max_tokens: 10000 };
+    }
+
     log('Messages built:', {
       totalMessages: messages.length,
       model: settings.apiSettings.defaultModel,
       temperature: settings.apiSettings.temperature,
       maxTokens: settings.apiSettings.maxTokens,
+      enableThinking: settings.apiSettings.enableThinking,
     });
 
     const response = await provider.generateResponse({
@@ -82,6 +91,7 @@ class AIService {
       model: settings.apiSettings.defaultModel,
       temperature: settings.apiSettings.temperature,
       maxTokens: settings.apiSettings.maxTokens,
+      extraBody: Object.keys(extraBody).length > 0 ? extraBody : undefined,
     });
 
     log('Response received, length:', response.content.length);
@@ -166,11 +176,20 @@ class AIService {
       }
     }
 
+    // Build extra body for provider-specific options
+    const extraBody: Record<string, unknown> = {};
+    if (settings.apiSettings.enableThinking) {
+      // Enable extended thinking with a reasonable token budget
+      // Reasoning tokens are NOT included in responses, per user requirement
+      extraBody.reasoning = { max_tokens: 10000 };
+    }
+
     log('Starting stream with', {
       totalMessages: messages.length,
       model: settings.apiSettings.defaultModel,
       temperature: settings.apiSettings.temperature,
       maxTokens: settings.apiSettings.maxTokens,
+      enableThinking: settings.apiSettings.enableThinking,
     });
 
     let chunkCount = 0;
@@ -181,6 +200,7 @@ class AIService {
       model: settings.apiSettings.defaultModel,
       temperature: settings.apiSettings.temperature,
       maxTokens: settings.apiSettings.maxTokens,
+      extraBody: Object.keys(extraBody).length > 0 ? extraBody : undefined,
     })) {
       chunkCount++;
       totalContent += chunk.content.length;

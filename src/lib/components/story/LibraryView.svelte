@@ -12,7 +12,7 @@
   let newStoryTitle = $state('');
   let selectedTemplateId = $state<string | null>(null);
   let selectedMode = $state<StoryMode>('adventure');
-  let selectedPOV = $state<POV>('second');
+  let selectedPOV = $state<POV>('first');
   let step = $state<'template' | 'details'>('template');
 
   // Derived template based on selection
@@ -67,7 +67,7 @@
     newStoryTitle = '';
     selectedTemplateId = null;
     selectedMode = 'adventure';
-    selectedPOV = 'second';
+    selectedPOV = 'first';
     step = 'template';
   }
 

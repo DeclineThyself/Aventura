@@ -75,7 +75,7 @@
   let showManualInput = $state(true); // Show manual input by default
 
   // Step 5: Writing Style
-  let selectedPOV = $state<POV>('second');
+  let selectedPOV = $state<POV>('first');
   let selectedTense = $state<Tense>('present');
   let tone = $state('immersive and engaging');
 

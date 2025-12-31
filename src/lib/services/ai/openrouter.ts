@@ -85,6 +85,16 @@ export class OpenRouterProvider implements AIProvider {
 
     log('Sending streaming request to OpenRouter...');
 
+    const requestBody = {
+      model: request.model,
+      messages: request.messages,
+      temperature: request.temperature ?? 0.8,
+      max_tokens: request.maxTokens ?? 1024,
+      stop: request.stopSequences,
+      stream: true,
+      ...request.extraBody, // Spread provider-specific options (e.g., reasoning)
+    };
+
     const response = await fetch(OPENROUTER_API_URL, {
       method: 'POST',
       headers: {
@@ -93,14 +103,7 @@ export class OpenRouterProvider implements AIProvider {
         'HTTP-Referer': 'https://aventura.app',
         'X-Title': 'Aventura',
       },
-      body: JSON.stringify({
-        model: request.model,
-        messages: request.messages,
-        temperature: request.temperature ?? 0.8,
-        max_tokens: request.maxTokens ?? 1024,
-        stop: request.stopSequences,
-        stream: true,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     log('Stream response received', { status: response.status, ok: response.ok });
