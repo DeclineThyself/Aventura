@@ -168,6 +168,29 @@ Respond with valid JSON only.`,
   retrievalDecision: `You decide which story chapters are relevant for the current context. Respond with valid JSON only.`,
 
   suggestions: `You are a creative writing assistant that suggests story directions. You provide varied, interesting options that respect the story's established tone and elements. Respond with valid JSON only.`,
+
+  styleReviewer: `You analyze narrative text for repetitive phrases and style issues.
+
+## Your Role
+Identify overused phrases, sentence patterns, and stylistic tics that reduce prose quality.
+
+## What to Look For
+- Repeated descriptive phrases (e.g., "eyes widening", "heart pounding")
+- Overused sentence openers (e.g., "You see", "There is")
+- Cliche expressions and purple prose patterns
+- Repetitive dialogue tags or action beats
+- Word echoes within close proximity
+
+## Severity Levels
+- low: 2-3 occurrences, minor impact
+- medium: 4-5 occurrences, noticeable repetition
+- high: 6+ occurrences, significantly impacts reading experience
+
+## Response Requirements
+- Be specific about the exact phrase
+- Provide context-appropriate alternatives
+- Focus on actionable improvements
+- Respond with valid JSON only`,
 };
 
 // Classifier service settings
@@ -223,11 +246,33 @@ export function getDefaultSuggestionsSettings(): SuggestionsSettings {
   };
 }
 
+// Style reviewer service settings
+export interface StyleReviewerSettings {
+  enabled: boolean;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  triggerInterval: number;
+  systemPrompt: string;
+}
+
+export function getDefaultStyleReviewerSettings(): StyleReviewerSettings {
+  return {
+    enabled: true, // Enabled by default per requirements
+    model: 'x-ai/grok-4.1-fast',
+    temperature: 0.3,
+    maxTokens: 1500,
+    triggerInterval: 5,
+    systemPrompt: DEFAULT_SERVICE_PROMPTS.styleReviewer,
+  };
+}
+
 // Combined system services settings
 export interface SystemServicesSettings {
   classifier: ClassifierSettings;
   memory: MemorySettings;
   suggestions: SuggestionsSettings;
+  styleReviewer: StyleReviewerSettings;
 }
 
 export function getDefaultSystemServicesSettings(): SystemServicesSettings {
@@ -235,6 +280,7 @@ export function getDefaultSystemServicesSettings(): SystemServicesSettings {
     classifier: getDefaultClassifierSettings(),
     memory: getDefaultMemorySettings(),
     suggestions: getDefaultSuggestionsSettings(),
+    styleReviewer: getDefaultStyleReviewerSettings(),
   };
 }
 
@@ -345,6 +391,7 @@ class SettingsStore {
             classifier: { ...defaults.classifier, ...loaded.classifier },
             memory: { ...defaults.memory, ...loaded.memory },
             suggestions: { ...defaults.suggestions, ...loaded.suggestions },
+            styleReviewer: { ...defaults.styleReviewer, ...loaded.styleReviewer },
           };
         } catch {
           this.systemServicesSettings = getDefaultSystemServicesSettings();
@@ -456,6 +503,11 @@ class SettingsStore {
 
   async resetSuggestionsSettings() {
     this.systemServicesSettings.suggestions = getDefaultSuggestionsSettings();
+    await this.saveSystemServicesSettings();
+  }
+
+  async resetStyleReviewerSettings() {
+    this.systemServicesSettings.styleReviewer = getDefaultStyleReviewerSettings();
     await this.saveSystemServicesSettings();
   }
 

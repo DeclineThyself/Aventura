@@ -95,6 +95,43 @@
   }
 
   /**
+   * Check if style review should run (every N messages).
+   * Runs in background, non-blocking.
+   */
+  async function checkStyleReview() {
+    // Check if style reviewer is enabled
+    if (!settings.systemServicesSettings.styleReviewer.enabled) {
+      return;
+    }
+
+    // Increment counter
+    ui.incrementStyleReviewCounter();
+
+    const triggerInterval = settings.systemServicesSettings.styleReviewer.triggerInterval;
+
+    log('checkStyleReview', {
+      messagesSinceLastReview: ui.messagesSinceLastStyleReview,
+      triggerInterval,
+    });
+
+    // Check if we've hit the interval threshold
+    if (ui.messagesSinceLastStyleReview >= triggerInterval) {
+      log('Triggering style review...');
+      ui.setStyleReviewLoading(true);
+
+      try {
+        const result = await aiService.analyzeStyle(story.entries);
+        ui.setStyleReview(result);
+        log('Style review complete', { phrasesFound: result.phrases.length });
+      } catch (error) {
+        log('Style review failed (non-fatal)', error);
+      } finally {
+        ui.setStyleReviewLoading(false);
+      }
+    }
+  }
+
+  /**
    * Generate RPG-style action choices for adventure mode.
    */
   async function generateActionChoices(narrativeResponse: string, worldState: any) {
@@ -262,9 +299,9 @@
       // Capture current story reference for use after streaming
       const currentStoryRef = story.currentStory;
 
-      // Use streaming response
-      log('Starting stream iteration...');
-      for await (const chunk of aiService.streamResponse(story.entries, worldState, currentStoryRef)) {
+      // Use streaming response (pass style review for guidance injection)
+      log('Starting stream iteration...', { hasStyleReview: !!ui.lastStyleReview });
+      for await (const chunk of aiService.streamResponse(story.entries, worldState, currentStoryRef, true, ui.lastStyleReview)) {
         chunkCount++;
         if (chunk.content) {
           fullResponse += chunk.content;
@@ -352,6 +389,11 @@
             log('Action choices generation failed (non-fatal)', err);
           });
         }
+
+        // Phase 8: Check if style review should run (background, non-blocking)
+        checkStyleReview().catch(err => {
+          log('Style review check failed (non-fatal)', err);
+        });
       } else {
         log('No response content to save (fullResponse was empty or whitespace)');
       }

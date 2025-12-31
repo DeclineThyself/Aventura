@@ -1,5 +1,6 @@
 import type { ActivePanel, SidebarTab, UIState } from '$lib/types';
 import type { ActionChoice } from '$lib/services/ai/actionChoices';
+import type { StyleReviewResult } from '$lib/services/ai/styleReviewer';
 import { database } from '$lib/services/database';
 
 // Error state for retry functionality
@@ -35,6 +36,11 @@ class UIStore {
   actionChoices = $state<ActionChoice[]>([]);
   actionChoicesLoading = $state(false);
   pendingActionChoice = $state<string | null>(null);
+
+  // Style reviewer state
+  messagesSinceLastStyleReview = $state(0);
+  lastStyleReview = $state<StyleReviewResult | null>(null);
+  styleReviewLoading = $state(false);
 
   // Retry callback - set by ActionInput
   private retryCallback: (() => Promise<void>) | null = null;
@@ -161,6 +167,28 @@ class UIStore {
     } else {
       console.log('[UI] No retry callback registered!');
     }
+  }
+
+  // Style reviewer methods
+  incrementStyleReviewCounter() {
+    this.messagesSinceLastStyleReview++;
+  }
+
+  resetStyleReviewCounter() {
+    this.messagesSinceLastStyleReview = 0;
+  }
+
+  setStyleReview(result: StyleReviewResult) {
+    this.lastStyleReview = result;
+    this.messagesSinceLastStyleReview = 0;
+  }
+
+  clearStyleReview() {
+    this.lastStyleReview = null;
+  }
+
+  setStyleReviewLoading(loading: boolean) {
+    this.styleReviewLoading = loading;
   }
 }
 

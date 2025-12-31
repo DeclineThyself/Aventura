@@ -5,6 +5,7 @@ import { ClassifierService, type ClassificationResult, type ClassificationContex
 import { MemoryService, type ChapterAnalysis, type ChapterSummary, type RetrievalDecision, DEFAULT_MEMORY_CONFIG } from './memory';
 import { SuggestionsService, type StorySuggestion, type SuggestionsResult } from './suggestions';
 import { ActionChoicesService, type ActionChoice, type ActionChoicesResult } from './actionChoices';
+import { StyleReviewerService, type StyleReviewResult } from './styleReviewer';
 import { ContextBuilder, type ContextResult, type ContextConfig, DEFAULT_CONTEXT_CONFIG } from './context';
 import type { Message, GenerationResponse, StreamChunk } from './types';
 import type { Story, StoryEntry, Character, Location, Item, StoryBeat, Chapter, MemoryConfig } from '$lib/types';
@@ -109,7 +110,8 @@ class AIService {
     entries: StoryEntry[],
     worldState: WorldState,
     story?: Story | null,
-    useTieredContext = true
+    useTieredContext = true,
+    styleReview?: StyleReviewResult | null
   ): AsyncIterable<StreamChunk> {
     log('streamResponse called', {
       entriesCount: entries.length,
@@ -159,7 +161,7 @@ class AIService {
     // Build the system prompt with world state context
     const systemPromptOverride = story?.settings?.systemPromptOverride;
     const pov = story?.settings?.pov;
-    const systemPrompt = this.buildSystemPrompt(
+    let systemPrompt = this.buildSystemPrompt(
       worldState,
       story?.templateId,
       undefined,
@@ -168,6 +170,14 @@ class AIService {
       systemPromptOverride,
       pov
     );
+
+    // Inject style guidance if available
+    if (styleReview && styleReview.phrases.length > 0) {
+      const styleGuidance = StyleReviewerService.formatForPromptInjection(styleReview);
+      systemPrompt += styleGuidance;
+      log('Style guidance injected', { phrasesCount: styleReview.phrases.length });
+    }
+
     log('System prompt built, length:', systemPrompt.length, 'mode:', mode, 'pov:', pov);
 
     // Build conversation history
@@ -309,6 +319,18 @@ class AIService {
     const provider = this.getProvider();
     const actionChoices = new ActionChoicesService(provider);
     return await actionChoices.generateChoices(entries, worldState, narrativeResponse, pov);
+  }
+
+  /**
+   * Analyze narration entries for style issues (overused phrases, etc.).
+   * Runs in background every N messages to provide writing guidance.
+   */
+  async analyzeStyle(entries: StoryEntry[]): Promise<StyleReviewResult> {
+    log('analyzeStyle called', { entriesCount: entries.length });
+
+    const provider = this.getProvider();
+    const styleReviewer = new StyleReviewerService(provider);
+    return await styleReviewer.analyzeStyle(entries);
   }
 
   /**

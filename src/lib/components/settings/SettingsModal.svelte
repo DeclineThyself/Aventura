@@ -19,11 +19,13 @@
   let showClassifierSection = $state(false);
   let showMemorySection = $state(false);
   let showSuggestionsSection = $state(false);
+  let showStyleReviewerSection = $state(false);
   let editingStoryPrompt = $state<'adventure' | 'creativeWriting' | null>(null);
   let editingProcess = $state<keyof AdvancedWizardSettings | null>(null);
   let editingClassifierPrompt = $state(false);
   let editingMemoryPrompt = $state<'chapterAnalysis' | 'chapterSummarization' | 'retrievalDecision' | null>(null);
   let editingSuggestionsPrompt = $state(false);
+  let editingStyleReviewerPrompt = $state(false);
 
   // Process labels for UI
   const processLabels: Record<keyof AdvancedWizardSettings, string> = {
@@ -1018,6 +1020,149 @@
                   {:else}
                     <p class="text-xs text-surface-400 line-clamp-2">
                       {settings.systemServicesSettings.suggestions.systemPrompt.slice(0, 100)}...
+                    </p>
+                  {/if}
+                </div>
+              </div>
+            {/if}
+          </div>
+
+          <!-- Style Reviewer Section -->
+          <div class="border-t border-surface-700 pt-3">
+            <div class="flex items-center justify-between">
+              <button
+                class="flex items-center gap-2 text-left flex-1"
+                onclick={() => showStyleReviewerSection = !showStyleReviewerSection}
+              >
+                <Sparkles class="h-4 w-4 text-pink-400" />
+                <div>
+                  <h3 class="text-sm font-medium text-surface-200">Style Reviewer</h3>
+                  <p class="text-xs text-surface-500">Analyzes prose for repetitive phrases</p>
+                </div>
+              </button>
+              <div class="flex items-center gap-2">
+                <!-- Enable/Disable Toggle -->
+                <button
+                  class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                  class:bg-accent-600={settings.systemServicesSettings.styleReviewer.enabled}
+                  class:bg-surface-600={!settings.systemServicesSettings.styleReviewer.enabled}
+                  onclick={async () => {
+                    settings.systemServicesSettings.styleReviewer.enabled =
+                      !settings.systemServicesSettings.styleReviewer.enabled;
+                    await settings.saveSystemServicesSettings();
+                  }}
+                  aria-label="Toggle style reviewer"
+                >
+                  <span
+                    class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"
+                    class:translate-x-5={settings.systemServicesSettings.styleReviewer.enabled}
+                    class:translate-x-1={!settings.systemServicesSettings.styleReviewer.enabled}
+                  ></span>
+                </button>
+                <button
+                  class="text-xs text-accent-400 hover:text-accent-300 flex items-center gap-1"
+                  onclick={() => settings.resetStyleReviewerSettings()}
+                >
+                  <RotateCcw class="h-3 w-3" />
+                  Reset
+                </button>
+                <button onclick={() => showStyleReviewerSection = !showStyleReviewerSection}>
+                  {#if showStyleReviewerSection}
+                    <ChevronUp class="h-4 w-4 text-surface-400" />
+                  {:else}
+                    <ChevronDown class="h-4 w-4 text-surface-400" />
+                  {/if}
+                </button>
+              </div>
+            </div>
+
+            {#if showStyleReviewerSection}
+              <div class="mt-3 space-y-3">
+                <div class="card bg-surface-900 p-3">
+                  <!-- Model and Temperature Row -->
+                  <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label class="mb-1 block text-xs font-medium text-surface-400">Model</label>
+                      <input
+                        type="text"
+                        bind:value={settings.systemServicesSettings.styleReviewer.model}
+                        onblur={() => settings.saveSystemServicesSettings()}
+                        placeholder="x-ai/grok-4.1-fast"
+                        class="input text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1 block text-xs font-medium text-surface-400">
+                        Temperature: {settings.systemServicesSettings.styleReviewer.temperature.toFixed(2)}
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        bind:value={settings.systemServicesSettings.styleReviewer.temperature}
+                        onchange={() => settings.saveSystemServicesSettings()}
+                        class="w-full h-2"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Trigger Interval -->
+                  <div class="mb-3">
+                    <label class="mb-1 block text-xs font-medium text-surface-400">
+                      Review Interval: Every {settings.systemServicesSettings.styleReviewer.triggerInterval} messages
+                    </label>
+                    <input
+                      type="range"
+                      min="3"
+                      max="15"
+                      step="1"
+                      bind:value={settings.systemServicesSettings.styleReviewer.triggerInterval}
+                      onchange={() => settings.saveSystemServicesSettings()}
+                      class="w-full h-2"
+                    />
+                    <div class="flex justify-between text-xs text-surface-500">
+                      <span>More Frequent</span>
+                      <span>Less Frequent</span>
+                    </div>
+                  </div>
+
+                  <!-- Max Tokens -->
+                  <div class="mb-3">
+                    <label class="mb-1 block text-xs font-medium text-surface-400">
+                      Max Tokens: {settings.systemServicesSettings.styleReviewer.maxTokens}
+                    </label>
+                    <input
+                      type="range"
+                      min="500"
+                      max="3000"
+                      step="100"
+                      bind:value={settings.systemServicesSettings.styleReviewer.maxTokens}
+                      onchange={() => settings.saveSystemServicesSettings()}
+                      class="w-full h-2"
+                    />
+                  </div>
+
+                  <!-- System Prompt -->
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-medium text-surface-400">System Prompt</span>
+                    <button
+                      class="text-xs text-accent-400 hover:text-accent-300"
+                      onclick={() => editingStyleReviewerPrompt = !editingStyleReviewerPrompt}
+                    >
+                      {editingStyleReviewerPrompt ? 'Close' : 'Edit'}
+                    </button>
+                  </div>
+                  {#if editingStyleReviewerPrompt}
+                    <textarea
+                      bind:value={settings.systemServicesSettings.styleReviewer.systemPrompt}
+                      onblur={() => settings.saveSystemServicesSettings()}
+                      class="input text-xs min-h-[150px] resize-y font-mono w-full"
+                      rows="8"
+                    ></textarea>
+                  {:else}
+                    <p class="text-xs text-surface-400 line-clamp-2">
+                      {settings.systemServicesSettings.styleReviewer.systemPrompt.slice(0, 100)}...
                     </p>
                   {/if}
                 </div>
