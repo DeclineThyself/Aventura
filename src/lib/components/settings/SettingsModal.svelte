@@ -46,6 +46,7 @@
 
   // Fallback models if API fetch fails
   const fallbackModels: ModelInfo[] = [
+    { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2', contextLength: 131072 },
     { id: 'x-ai/grok-4.1-fast', name: 'Grok 4.1 Fast', contextLength: 131072 },
     { id: 'x-ai/grok-4.1', name: 'Grok 4.1', contextLength: 131072 },
     { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', contextLength: 200000 },
@@ -715,7 +716,7 @@
                         type="text"
                         bind:value={settings.systemServicesSettings.classifier.model}
                         onblur={() => settings.saveSystemServicesSettings()}
-                        placeholder="x-ai/grok-4.1-fast"
+                        placeholder="deepseek/deepseek-v3.2"
                         class="input text-sm"
                       />
                     </div>
@@ -820,7 +821,7 @@
                         type="text"
                         bind:value={settings.systemServicesSettings.memory.model}
                         onblur={() => settings.saveSystemServicesSettings()}
-                        placeholder="x-ai/grok-4.1-fast"
+                        placeholder="deepseek/deepseek-v3.2"
                         class="input text-sm"
                       />
                     </div>
@@ -961,7 +962,7 @@
                         type="text"
                         bind:value={settings.systemServicesSettings.suggestions.model}
                         onblur={() => settings.saveSystemServicesSettings()}
-                        placeholder="x-ai/grok-4.1-fast"
+                        placeholder="deepseek/deepseek-v3.2"
                         class="input text-sm"
                       />
                     </div>

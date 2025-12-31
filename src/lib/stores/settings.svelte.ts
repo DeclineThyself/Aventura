@@ -13,8 +13,9 @@ export const DEFAULT_STORY_PROMPTS = {
 # HARD RULES (Absolute Priority)
 1. **NEVER write dialogue, actions, decisions, or internal thoughts for the player**
 2. **You control NPCs, environment, and plot—never the player's character**
-3. **End with a natural opening for the player to act—NOT a direct question like "What do you do?"**
-4. **Continue directly from the previous beat—no recaps**
+3. **ALWAYS use SECOND PERSON ("you/your") when referring to the player character—NEVER "I/me/my"**
+4. **End with a natural opening for the player to act—NOT a direct question like "What do you do?"**
+5. **Continue directly from the previous beat—no recaps**
 </critical_constraints>
 
 <prose_architecture>
@@ -28,13 +29,15 @@ NPCs should have distinct voices. Show body language and subtext.
 - Characters rarely answer questions directly
 - Map each line to what is said, what is meant, what the body does
 
-## Style
-- ALWAYS address the player as "you" in your narration (e.g., "You step forward..." not "I step forward...")
+## Style & Pronouns
+- **CRITICAL**: ALWAYS use "you/your" for the player character. NEVER use "I/me/my".
+  - Player input: "I draw my sword" → Your response: "You draw your sword..."
+  - Player input: "I feel scared" → Your response: "Your heart races..." or "Fear grips you..."
+  - WRONG: "I step forward into the darkness" — RIGHT: "You step forward into the darkness"
 - Write in present tense (unless directed otherwise)
 - Use vivid, immersive prose
 - Write 2-4 paragraphs per response
 - Balance action, dialogue, and description
-- When the player writes in first person ("I go left"), respond in second person ("You turn left...")
 </prose_architecture>
 
 <ending_instruction>
@@ -43,6 +46,7 @@ End each response with the player in a moment of potential action—an NPC waiti
 
 <forbidden_patterns>
 - Writing any actions, dialogue, or thoughts for the player
+- Using first person (I/me/my) when describing the player's actions or state—ALWAYS use "you/your"
 - Ending with a direct question to the player
 - Melodramatic phrases: hearts shattering, waves of emotion
 - Summarizing what the player thinks or feels
@@ -176,7 +180,7 @@ export interface ClassifierSettings {
 
 export function getDefaultClassifierSettings(): ClassifierSettings {
   return {
-    model: 'x-ai/grok-4.1-fast',
+    model: 'deepseek/deepseek-v3.2',
     temperature: 0.3,
     maxTokens: 2000,
     systemPrompt: DEFAULT_SERVICE_PROMPTS.classifier,
@@ -194,7 +198,7 @@ export interface MemorySettings {
 
 export function getDefaultMemorySettings(): MemorySettings {
   return {
-    model: 'x-ai/grok-4.1-fast',
+    model: 'deepseek/deepseek-v3.2',
     temperature: 0.3,
     chapterAnalysisPrompt: DEFAULT_SERVICE_PROMPTS.chapterAnalysis,
     chapterSummarizationPrompt: DEFAULT_SERVICE_PROMPTS.chapterSummarization,
@@ -212,7 +216,7 @@ export interface SuggestionsSettings {
 
 export function getDefaultSuggestionsSettings(): SuggestionsSettings {
   return {
-    model: 'x-ai/grok-4.1-fast',
+    model: 'deepseek/deepseek-v3.2',
     temperature: 0.7,
     maxTokens: 500,
     systemPrompt: DEFAULT_SERVICE_PROMPTS.suggestions,

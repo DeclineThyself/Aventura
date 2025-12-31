@@ -12,7 +12,10 @@ function log(...args: any[]) {
 }
 
 // Default model for scenario generation - fast and capable
-export const SCENARIO_MODEL = 'deepseek/deepseek-chat-v3-0324';
+export const SCENARIO_MODEL = 'deepseek/deepseek-v3.2';
+
+// Provider preference for deepseek models (with fallbacks)
+export const SCENARIO_PROVIDER = { order: ['deepseek', 'google-vertex', 'siliconflow/fp8'] };
 
 export type Genre = 'fantasy' | 'scifi' | 'modern' | 'horror' | 'mystery' | 'romance' | 'custom';
 export type Tense = 'past' | 'present';
@@ -317,6 +320,7 @@ Expand this into a rich, detailed world suitable for interactive storytelling.`
       model: overrides?.model || SCENARIO_MODEL,
       temperature: overrides?.temperature ?? 0.8,
       maxTokens: overrides?.maxTokens ?? 1500,
+      extraBody: { provider: SCENARIO_PROVIDER },
     });
 
     log('Setting expansion response received', { length: response.content.length });
@@ -405,6 +409,7 @@ Expand and enrich these details while staying true to what I've provided.`
       model: overrides?.model || SCENARIO_MODEL,
       temperature: overrides?.temperature ?? 0.8,
       maxTokens: overrides?.maxTokens ?? 800,
+      extraBody: { provider: SCENARIO_PROVIDER },
     });
 
     log('Character elaboration response received', { length: response.content.length });
@@ -492,6 +497,7 @@ Generate a compelling protagonist who would fit naturally into this world.`
       model: overrides?.model || SCENARIO_MODEL,
       temperature: overrides?.temperature ?? 0.85,
       maxTokens: overrides?.maxTokens ?? 800,
+      extraBody: { provider: SCENARIO_PROVIDER },
     });
 
     log('Protagonist response received', { length: response.content.length });
@@ -564,6 +570,7 @@ Generate ${count} interesting supporting characters who would create compelling 
       model: overrides?.model || SCENARIO_MODEL,
       temperature: overrides?.temperature ?? 0.85,
       maxTokens: overrides?.maxTokens ?? 1200,
+      extraBody: { provider: SCENARIO_PROVIDER },
     });
 
     log('Characters response received', { length: response.content.length });
@@ -708,6 +715,7 @@ Describe the environment and situation. Do NOT write anything ${userName} does, 
       model: overrides?.model || SCENARIO_MODEL,
       temperature: overrides?.temperature ?? 0.85,
       maxTokens: overrides?.maxTokens ?? 1500,
+      extraBody: { provider: SCENARIO_PROVIDER },
     });
 
     log('Opening response received', { length: response.content.length });
