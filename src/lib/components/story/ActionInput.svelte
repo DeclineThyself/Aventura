@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { ui } from '$lib/stores/ui.svelte';
   import { story } from '$lib/stores/story.svelte';
   import { settings } from '$lib/stores/settings.svelte';
@@ -49,10 +50,8 @@
       inputValue = pendingAction;
       isRawActionChoice = true;
       ui.clearPendingActionChoice();
-      // Use setTimeout to ensure the state update is processed
-      setTimeout(() => {
-        handleSubmit();
-      }, 0);
+      // handleSubmit now uses tick() to ensure state synchronization
+      handleSubmit();
     }
   });
 
@@ -645,6 +644,10 @@
 
     // Clear input
     inputValue = '';
+
+    // Wait for reactive state to synchronize before generation
+    // This ensures lorebook entries, characters, etc. are fully loaded
+    await tick();
 
     // Generate AI response with streaming
     if (settings.hasApiKey) {

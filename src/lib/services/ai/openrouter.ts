@@ -61,7 +61,7 @@ export class OpenRouterProvider implements AIProvider {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
-        'HTTP-Referer': 'https://aventura.app',
+        'HTTP-Referer': 'https://aventura.camp',
         'X-Title': 'Aventura',
       },
       body: JSON.stringify(requestBody),
@@ -123,7 +123,7 @@ export class OpenRouterProvider implements AIProvider {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
-        'HTTP-Referer': 'https://aventura.app',
+        'HTTP-Referer': 'https://aventura.camp',
         'X-Title': 'Aventura',
       },
       body: JSON.stringify(requestBody),
@@ -211,7 +211,7 @@ export class OpenRouterProvider implements AIProvider {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
-        'HTTP-Referer': 'https://aventura.app',
+        'HTTP-Referer': 'https://aventura.camp',
         'X-Title': 'Aventura',
       },
       body: JSON.stringify(requestBody),

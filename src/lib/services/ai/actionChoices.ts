@@ -118,10 +118,13 @@ Active Quests: ${activeQuests.length > 0 ? activeQuests.map(q => q.title).join('
 
 ## Your Task
 Generate 3-4 distinct action choices for THE USER (playing as ${protagonistName}). Think like an RPG:
+- **Every choice should move the plot forward** - no passive waiting or stalling
 - Include at least one physical action (examine, take, use, attack, etc.)
 - If NPCs are present, include a dialogue option for the user to talk to them
 - If there's an obvious next step or quest objective, include it
-- Include an exploratory or cautious option
+- Include an exploratory or investigative option that advances understanding
+
+Avoid choices like "Wait and see" or "Do nothing" - each option should lead to meaningful story progression.
 
 ${povInstruction}
 
