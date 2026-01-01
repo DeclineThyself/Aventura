@@ -3,7 +3,7 @@
   import { story } from '$lib/stores/story.svelte';
   import { settings } from '$lib/stores/settings.svelte';
   import { exportService } from '$lib/services/export';
-  import { PanelLeft, Settings, BookOpen, Library, Feather, Download, FileJson, FileText, ChevronDown } from 'lucide-svelte';
+  import { PanelLeft, Settings, BookOpen, Library, Feather, Download, FileJson, FileText, ChevronDown, Bug } from 'lucide-svelte';
 
   let showExportMenu = $state(false);
 
@@ -138,6 +138,21 @@
           </div>
         {/if}
       </div>
+    {/if}
+
+    {#if story.currentStory && story.lorebookEntries.length > 0}
+      <button
+        class="btn-ghost rounded-lg p-2 relative"
+        onclick={() => ui.toggleLorebookDebug()}
+        title="View active lorebook entries"
+      >
+        <Bug class="h-5 w-5" />
+        {#if ui.lastLorebookRetrieval && ui.lastLorebookRetrieval.all.length > 0}
+          <span class="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-accent-500 text-[10px] font-medium flex items-center justify-center text-white">
+            {ui.lastLorebookRetrieval.all.length}
+          </span>
+        {/if}
+      </button>
     {/if}
 
     <button

@@ -382,6 +382,8 @@
               story.visibleEntries.slice(-10)
             );
             lorebookContext = entryResult.contextBlock;
+            // Store retrieval result for debug panel
+            ui.setLastLorebookRetrieval(entryResult);
             log('Lorebook retrieval complete', {
               tier1: entryResult.tier1.length,
               tier2: entryResult.tier2.length,

@@ -6,6 +6,7 @@
   import StoryView from '$lib/components/story/StoryView.svelte';
   import LibraryView from '$lib/components/story/LibraryView.svelte';
   import SettingsModal from '$lib/components/settings/SettingsModal.svelte';
+  import LorebookDebugPanel from '$lib/components/debug/LorebookDebugPanel.svelte';
   import type { Snippet } from 'svelte';
 
   let { children }: { children?: Snippet } = $props();
@@ -36,4 +37,7 @@
   {#if ui.settingsModalOpen}
     <SettingsModal />
   {/if}
+
+  <!-- Lorebook Debug Panel -->
+  <LorebookDebugPanel />
 </div>

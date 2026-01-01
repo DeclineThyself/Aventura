@@ -1,6 +1,7 @@
 import type { ActivePanel, SidebarTab, UIState } from '$lib/types';
 import type { ActionChoice } from '$lib/services/ai/actionChoices';
 import type { StyleReviewResult } from '$lib/services/ai/styleReviewer';
+import type { EntryRetrievalResult } from '$lib/services/ai/entryRetrieval';
 import { database } from '$lib/services/database';
 
 // Error state for retry functionality
@@ -41,6 +42,10 @@ class UIStore {
   messagesSinceLastStyleReview = $state(0);
   lastStyleReview = $state<StyleReviewResult | null>(null);
   styleReviewLoading = $state(false);
+
+  // Lorebook debug state
+  lastLorebookRetrieval = $state<EntryRetrievalResult | null>(null);
+  lorebookDebugOpen = $state(false);
 
   // Retry callback - set by ActionInput
   private retryCallback: (() => Promise<void>) | null = null;
@@ -189,6 +194,23 @@ class UIStore {
 
   setStyleReviewLoading(loading: boolean) {
     this.styleReviewLoading = loading;
+  }
+
+  // Lorebook debug methods
+  setLastLorebookRetrieval(result: EntryRetrievalResult | null) {
+    this.lastLorebookRetrieval = result;
+  }
+
+  openLorebookDebug() {
+    this.lorebookDebugOpen = true;
+  }
+
+  closeLorebookDebug() {
+    this.lorebookDebugOpen = false;
+  }
+
+  toggleLorebookDebug() {
+    this.lorebookDebugOpen = !this.lorebookDebugOpen;
   }
 }
 
