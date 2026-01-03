@@ -191,11 +191,20 @@ class ExportService {
   // Import from file content string (for HTML file input / mobile compatibility)
   async importFromContent(content: string): Promise<{ success: boolean; storyId?: string; error?: string }> {
     try {
-      const data: AventuraExport = JSON.parse(content);
+      let data: AventuraExport;
+      try {
+        data = JSON.parse(content);
+      } catch {
+        return { success: false, error: 'Invalid file: Not a valid JSON file. Please select an Aventura story file (.avt or .json).' };
+      }
 
       // Validate the import data
       if (!data.version || !data.story || !data.entries) {
-        return { success: false, error: 'Invalid Aventura file format' };
+        return { success: false, error: 'Invalid file format: This does not appear to be an Aventura story file. Missing required fields (version, story, or entries).' };
+      }
+
+      if (data.entries.length === 0) {
+        return { success: false, error: 'Invalid story file: The file contains no story entries.' };
       }
 
       // Generate new IDs to avoid conflicts

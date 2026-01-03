@@ -63,8 +63,10 @@
     error = null;
     parseResult = null;
 
-    if (!file.name.endsWith('.json')) {
-      error = 'Please select a JSON file';
+    // Check file extension (case-insensitive)
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.json')) {
+      error = 'Please select a JSON file (.json)';
       return;
     }
 
@@ -72,16 +74,21 @@
       const text = await file.text();
       const result = parseLorebook(text);
 
-      if (!result.success || result.entries.length === 0) {
+      if (!result.success) {
         error = result.errors.length > 0
           ? result.errors.join(', ')
-          : 'No entries found in this lorebook';
+          : 'Invalid lorebook file format';
+        return;
+      }
+
+      if (result.entries.length === 0) {
+        error = 'No valid entries found in this lorebook file';
         return;
       }
 
       parseResult = result;
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to parse file';
+      error = err instanceof Error ? err.message : 'Failed to read file';
     }
   }
 

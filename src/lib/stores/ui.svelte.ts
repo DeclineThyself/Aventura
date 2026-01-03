@@ -38,6 +38,9 @@ class UIStore {
   streamingContent = $state('');
   isStreaming = $state(false);
 
+  // Scroll break state - persists until user sends a new message
+  userScrolledUp = $state(false);
+
   // Error state for retry
   lastGenerationError = $state<GenerationError | null>(null);
 
@@ -141,6 +144,15 @@ class UIStore {
   endStreaming() {
     this.isStreaming = false;
     this.streamingContent = '';
+  }
+
+  // Scroll break methods - user scrolled away during generation
+  setScrollBreak(value: boolean) {
+    this.userScrolledUp = value;
+  }
+
+  resetScrollBreak() {
+    this.userScrolledUp = false;
   }
 
   getStreamingContent(): string {

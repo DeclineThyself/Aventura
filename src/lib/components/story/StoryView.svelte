@@ -8,16 +8,6 @@
 
   let storyContainer: HTMLDivElement;
 
-  // Track if user has scrolled up during streaming (to allow reading while generating)
-  let userScrolledUp = $state(false);
-
-  // Reset scroll break when streaming ends
-  $effect(() => {
-    if (!ui.isStreaming) {
-      userScrolledUp = false;
-    }
-  });
-
   // Check if container is scrolled near bottom
   function isNearBottom(): boolean {
     if (!storyContainer) return true;
@@ -30,9 +20,9 @@
     // Only track scroll during streaming
     if (!ui.isStreaming) return;
 
-    // If user scrolled away from bottom, break auto-scroll
+    // If user scrolled away from bottom, break auto-scroll until next user message
     if (!isNearBottom()) {
-      userScrolledUp = true;
+      ui.setScrollBreak(true);
     }
   }
 
@@ -42,8 +32,8 @@
     const _ = story.entries.length;
     const __ = ui.streamingContent;
 
-    // Skip auto-scroll if user has scrolled up on mobile during streaming
-    if (userScrolledUp) return;
+    // Skip auto-scroll if user has scrolled up (persists until next user message)
+    if (ui.userScrolledUp) return;
 
     if (storyContainer) {
       storyContainer.scrollTop = storyContainer.scrollHeight;

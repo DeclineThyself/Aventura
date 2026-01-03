@@ -749,6 +749,9 @@
     // Clear any previous error
     ui.clearGenerationError();
 
+    // Reset scroll break - user sending a message means they want to see the response
+    ui.resetScrollBreak();
+
     // Clear suggestions immediately when user sends a message
     ui.clearSuggestions();
 

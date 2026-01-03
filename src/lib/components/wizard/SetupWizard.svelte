@@ -601,14 +601,23 @@
       const content = await file.text();
       const result = parseSillyTavernLorebook(content);
 
-      importedLorebook = result;
-
       if (!result.success) {
         importError = result.errors.join('; ') || 'Failed to parse lorebook';
-        importedEntries = result.entries;
+        importedLorebook = null;
+        importedEntries = [];
         isImporting = false;
         return;
       }
+
+      if (result.entries.length === 0) {
+        importError = 'No valid entries found in this file. Please select a valid lorebook JSON file.';
+        importedLorebook = null;
+        importedEntries = [];
+        isImporting = false;
+        return;
+      }
+
+      importedLorebook = result;
 
       // Run LLM classification if we have entries and an API key
       if (result.entries.length > 0 && settings.hasApiKey) {

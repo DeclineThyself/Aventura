@@ -144,23 +144,23 @@ Respond with valid JSON:
 export function getDefaultAdvancedSettings(): AdvancedWizardSettings {
   return {
     settingExpansion: {
-      model: 'xiaomi/mimo-v2-flash:free', // mimo-v2-flash with reasoning for world elaboration
+      model: 'deepseek/deepseek-v3.2', // deepseek for world elaboration
       systemPrompt: DEFAULT_PROMPTS.settingExpansion,
-      temperature: 0.8,
+      temperature: 0.3,
       topP: 0.95,
       maxTokens: 8192,
     },
     protagonistGeneration: {
-      model: 'xiaomi/mimo-v2-flash:free', // mimo-v2-flash with reasoning for protagonist generation
+      model: 'deepseek/deepseek-v3.2', // deepseek for protagonist generation
       systemPrompt: DEFAULT_PROMPTS.protagonistGeneration,
-      temperature: 0.8,
+      temperature: 0.3,
       topP: 0.95,
       maxTokens: 8192,
     },
     characterElaboration: {
-      model: 'xiaomi/mimo-v2-flash:free', // mimo-v2-flash with reasoning for character elaboration
+      model: 'deepseek/deepseek-v3.2', // deepseek for character elaboration
       systemPrompt: DEFAULT_PROMPTS.characterElaboration,
-      temperature: 0.8,
+      temperature: 0.3,
       topP: 0.95,
       maxTokens: 8192,
     },
@@ -353,18 +353,16 @@ Expand this into a rich, detailed world suitable for interactive storytelling.${
       }
     ];
 
-    const model = overrides?.model || 'xiaomi/mimo-v2-flash:free';
-    const isMimo = model.includes('mimo');
+    const model = overrides?.model || 'deepseek/deepseek-v3.2';
 
     const response = await provider.generateResponse({
       messages,
       model,
-      temperature: overrides?.temperature ?? 0.8,
-      topP: overrides?.topP ?? (isMimo ? 0.95 : undefined),
+      temperature: overrides?.temperature ?? 0.3,
+      topP: overrides?.topP,
       maxTokens: overrides?.maxTokens ?? 8192,
       extraBody: {
         provider: SCENARIO_PROVIDER,
-        ...(isMimo && { reasoning: { max_tokens: 8000 } }),
       },
     });
 
@@ -449,19 +447,16 @@ Expand and enrich these details while staying true to what I've provided.`
       }
     ];
 
-    // Use reasoning for mimo models
-    const model = overrides?.model || 'xiaomi/mimo-v2-flash:free';
-    const isMimo = model.includes('mimo');
+    const model = overrides?.model || 'deepseek/deepseek-v3.2';
 
     const response = await provider.generateResponse({
       messages,
       model,
-      temperature: overrides?.temperature ?? 0.8,
-      topP: overrides?.topP ?? (isMimo ? 0.95 : undefined),
+      temperature: overrides?.temperature ?? 0.3,
+      topP: overrides?.topP,
       maxTokens: overrides?.maxTokens ?? 8192,
       extraBody: {
         provider: SCENARIO_PROVIDER,
-        ...(isMimo && { reasoning: { max_tokens: 8000 } }),
       },
     });
 
@@ -545,19 +540,16 @@ Generate a compelling protagonist who would fit naturally into this world.`
       }
     ];
 
-    // Use MiMo with reasoning for protagonist generation
-    const model = overrides?.model || 'xiaomi/mimo-v2-flash:free';
-    const isMimo = model.includes('mimo');
+    const model = overrides?.model || 'deepseek/deepseek-v3.2';
 
     const response = await provider.generateResponse({
       messages,
       model,
-      temperature: overrides?.temperature ?? 0.8,
-      topP: overrides?.topP ?? (isMimo ? 0.95 : undefined),
+      temperature: overrides?.temperature ?? 0.3,
+      topP: overrides?.topP,
       maxTokens: overrides?.maxTokens ?? 8192,
       extraBody: {
         provider: SCENARIO_PROVIDER,
-        ...(isMimo && { reasoning: { max_tokens: 8000 } }),
       },
     });
 
