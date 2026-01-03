@@ -5,7 +5,7 @@
   import { settings } from '$lib/stores/settings.svelte';
   import { aiService } from '$lib/services/ai';
   import { SimpleActivationTracker } from '$lib/services/ai/entryRetrieval';
-  import { Send, Wand2, MessageSquare, Brain, Sparkles, Feather, RefreshCw, X, PenLine } from 'lucide-svelte';
+  import { Send, Wand2, MessageSquare, Brain, Sparkles, Feather, RefreshCw, X, PenLine, RotateCcw } from 'lucide-svelte';
   import type { Chapter } from '$lib/types';
   import Suggestions from './Suggestions.svelte';
   import GrammarCheck from './GrammarCheck.svelte';
@@ -771,6 +771,21 @@
 
     log('Action content built', { content, mode: isCreativeMode ? 'creative' : 'adventure', wasRawChoice: isRawActionChoice });
 
+    // Create a backup of the current state BEFORE adding the user action
+    // This allows "retry last message" to restore to this exact point
+    if (story.currentStory) {
+      ui.createRetryBackup(
+        story.currentStory.id,
+        story.entries,
+        story.characters,
+        story.locations,
+        story.items,
+        story.storyBeats,
+        story.lorebookEntries,
+        content
+      );
+    }
+
     // Add user action to story
     const userActionEntry = await story.addEntry('user_action', content);
     log('User action added to story', { entryId: userActionEntry.id });
@@ -833,6 +848,84 @@
     ui.clearGenerationError();
   }
 
+  /**
+   * Retry the last user message by restoring to the backup state
+   * and regenerating with the same user action.
+   */
+  async function handleRetryLastMessage() {
+    log('handleRetryLastMessage called', {
+      hasBackup: !!ui.retryBackup,
+      isGenerating: ui.isGenerating,
+      storyId: story.currentStory?.id,
+    });
+
+    const backup = ui.retryBackup;
+    if (!backup || ui.isGenerating || !story.currentStory) {
+      log('handleRetryLastMessage early return');
+      return;
+    }
+
+    // Verify backup is for current story
+    if (backup.storyId !== story.currentStory.id) {
+      log('Backup is for different story, clearing');
+      ui.clearRetryBackup();
+      return;
+    }
+
+    log('Restoring from backup and regenerating', {
+      backupEntriesCount: backup.entries.length,
+      currentEntriesCount: story.entries.length,
+      userAction: backup.userActionContent.substring(0, 50),
+    });
+
+    // Clear any error state
+    ui.clearGenerationError();
+
+    // Clear suggestions and action choices
+    ui.clearSuggestions();
+    ui.clearActionChoices();
+
+    try {
+      // Restore story state from backup
+      await story.restoreFromRetryBackup({
+        entries: backup.entries,
+        characters: backup.characters,
+        locations: backup.locations,
+        items: backup.items,
+        storyBeats: backup.storyBeats,
+        lorebookEntries: backup.lorebookEntries,
+      });
+
+      // Wait for state to sync
+      await tick();
+
+      // Re-add the user action
+      const userActionEntry = await story.addEntry('user_action', backup.userActionContent);
+      log('User action re-added', { entryId: userActionEntry.id });
+
+      // Emit UserInput event
+      emitUserInput(backup.userActionContent, isCreativeMode ? 'direction' : actionType);
+
+      // Wait for state to sync again
+      await tick();
+
+      // Regenerate
+      if (settings.hasApiKey) {
+        await generateResponse(userActionEntry.id, backup.userActionContent);
+      }
+    } catch (error) {
+      log('Retry last message failed', error);
+      console.error('Retry last message failed:', error);
+    }
+  }
+
+  /**
+   * Dismiss the retry backup (user doesn't want to retry)
+   */
+  function dismissRetryBackup() {
+    ui.clearRetryBackup();
+  }
+
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -858,6 +951,32 @@
         </button>
         <button
           onclick={dismissError}
+          class="p-1.5 rounded text-surface-400 hover:bg-surface-700 hover:text-surface-200"
+          title="Dismiss"
+        >
+          <X class="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Retry last message banner -->
+  {#if ui.retryBackup && story.currentStory && ui.retryBackup.storyId === story.currentStory.id && !ui.isGenerating && !ui.lastGenerationError}
+    <div class="flex items-center justify-between gap-3 rounded-lg bg-surface-700/50 border border-surface-600 p-3">
+      <div class="flex items-center gap-2 text-sm text-surface-300">
+        <RotateCcw class="h-4 w-4 text-primary-400" />
+        <span>Want a different response?</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          onclick={handleRetryLastMessage}
+          class="btn flex items-center gap-1.5 text-sm bg-primary-500/20 text-primary-400 hover:bg-primary-500/30"
+        >
+          <RotateCcw class="h-4 w-4" />
+          Retry Last Message
+        </button>
+        <button
+          onclick={dismissRetryBackup}
           class="p-1.5 rounded text-surface-400 hover:bg-surface-700 hover:text-surface-200"
           title="Dismiss"
         >

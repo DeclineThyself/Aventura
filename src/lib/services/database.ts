@@ -584,6 +584,61 @@ class DatabaseService {
     }
   }
 
+  /**
+   * Restore story state from a retry backup.
+   * Similar to restoreCheckpoint but designed for the "retry last message" feature.
+   * Does NOT touch chapters (those are more permanent).
+   */
+  async restoreRetryBackup(
+    storyId: string,
+    entries: StoryEntry[],
+    characters: Character[],
+    locations: Location[],
+    items: Item[],
+    storyBeats: StoryBeat[],
+    lorebookEntries: Entry[]
+  ): Promise<void> {
+    const db = await this.getDb();
+
+    // Delete current state (except chapters which are more permanent)
+    await db.execute('DELETE FROM story_entries WHERE story_id = ?', [storyId]);
+    await db.execute('DELETE FROM characters WHERE story_id = ?', [storyId]);
+    await db.execute('DELETE FROM locations WHERE story_id = ?', [storyId]);
+    await db.execute('DELETE FROM items WHERE story_id = ?', [storyId]);
+    await db.execute('DELETE FROM story_beats WHERE story_id = ?', [storyId]);
+    await db.execute('DELETE FROM entries WHERE story_id = ?', [storyId]);
+
+    // Restore entries
+    for (const entry of entries) {
+      await this.addStoryEntry(entry);
+    }
+
+    // Restore characters
+    for (const character of characters) {
+      await this.addCharacter(character);
+    }
+
+    // Restore locations
+    for (const location of locations) {
+      await this.addLocation(location);
+    }
+
+    // Restore items
+    for (const item of items) {
+      await this.addItem(item);
+    }
+
+    // Restore story beats
+    for (const beat of storyBeats) {
+      await this.addStoryBeat(beat);
+    }
+
+    // Restore lorebook entries
+    for (const entry of lorebookEntries) {
+      await this.addEntry(entry);
+    }
+  }
+
   // ===== Entry/Lorebook Operations (per design doc section 3.2) =====
 
   async getEntries(storyId: string): Promise<Entry[]> {

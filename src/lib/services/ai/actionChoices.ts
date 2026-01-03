@@ -81,9 +81,38 @@ export class ActionChoicesService {
       return `${prefix} ${e.content.substring(0, 300)}${e.content.length > 300 ? '...' : ''}`;
     }).join('\n');
 
-    // Determine POV instruction for action phrasing
+    // Extract user's action examples to learn their style
+    const userActions = recentEntries
+      .filter(e => e.type === 'user_action')
+      .slice(-6)
+      .map(e => e.content.trim());
+
+    // Build style guidance based on user's actual writing
+    let styleGuidance = '';
+    if (userActions.length > 0) {
+      const avgLength = Math.round(userActions.reduce((sum, a) => sum + a.split(' ').length, 0) / userActions.length);
+      const usesFirstPerson = userActions.some(a => /^I\s/i.test(a) || /\sI\s/i.test(a));
+      const usesQuotes = userActions.some(a => a.includes('"'));
+      const isVerbose = avgLength > 15;
+      const isTerse = avgLength < 6;
+
+      styleGuidance = `
+## User's Writing Style (MATCH THIS)
+Here are the user's recent actions - mimic their style:
+${userActions.slice(-4).map(a => `- "${a}"`).join('\n')}
+
+Style observations to follow:
+- Length: ${isTerse ? 'Very short and punchy' : isVerbose ? 'Detailed and descriptive' : 'Moderate length'} (~${avgLength} words average)
+- Person: ${usesFirstPerson ? 'Uses "I" statements' : 'Uses commands/third person'}
+- Format: ${usesQuotes ? 'Sometimes includes dialogue in quotes' : 'Primarily action descriptions'}
+Match their vocabulary, tone, and phrasing patterns.`;
+    }
+
+    // Determine POV instruction for action phrasing (fallback if no user examples)
     let povInstruction: string;
-    if (pov === 'third') {
+    if (userActions.length > 0) {
+      povInstruction = 'Write actions in the SAME STYLE as the user examples above. Match their phrasing exactly.';
+    } else if (pov === 'third') {
       povInstruction = 'Write actions as commands/intentions (e.g., "Examine the door", "Ask the merchant about...")';
     } else {
       povInstruction = 'Write actions in first person (e.g., "I examine the door", "I ask the merchant about...")';
@@ -99,6 +128,7 @@ export class ActionChoicesService {
 The USER is playing as ${protagonistName}${protagonistDesc}. This is the USER'S persona/character - it IS the user, not a separate NPC.
 When generating action choices, you are suggesting what THE USER might want to do next as their character ${protagonistName}.
 Do NOT generate actions for ${protagonistName} as if they were a separate character - these are suggestions for the user's next move.
+${styleGuidance}
 
 ## Current Narrative
 """
@@ -126,7 +156,7 @@ Avoid choices like "Wait and see" or "Do nothing" - each option should lead to m
 
 ${povInstruction}
 
-Keep each choice SHORT (under 10 words ideally, max 15). They should be clear, specific actions the USER can take.
+${userActions.length > 0 ? `Match the length of the user's actions (~${Math.round(userActions.reduce((sum, a) => sum + a.split(' ').length, 0) / userActions.length)} words). They should feel like something the user would actually write.` : 'Keep each choice SHORT (under 10 words ideally, max 15). They should be clear, specific actions the USER can take.'}
 
 ## Response Format (JSON only)
 {
@@ -149,7 +179,7 @@ Types:
         messages: [
           {
             role: 'system',
-            content: `You are an RPG game master generating action choices for a player. The player has a character/persona that represents THEM in the story - when you generate choices, these are suggestions for what the PLAYER (the real person) might want their character to do next. Generate clear, concise action options that fit the current narrative moment. Always respond with valid JSON only.`,
+            content: `You are an RPG game master generating action choices for a player. The player has a character/persona that represents THEM in the story - when you generate choices, these are suggestions for what the PLAYER (the real person) might want their character to do next. Generate action options that fit the current narrative moment and MATCH THE PLAYER'S WRITING STYLE - if they write verbose actions, generate verbose choices; if they write terse commands, generate terse choices. Mimic their vocabulary, phrasing, and tone. Always respond with valid JSON only.`,
           },
           { role: 'user', content: prompt },
         ],

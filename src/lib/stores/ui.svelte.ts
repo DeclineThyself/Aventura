@@ -1,10 +1,25 @@
-import type { ActivePanel, SidebarTab, UIState, EntryType } from '$lib/types';
+import type { ActivePanel, SidebarTab, UIState, EntryType, StoryEntry, Character, Location, Item, StoryBeat, Entry } from '$lib/types';
 import type { ActionChoice } from '$lib/services/ai/actionChoices';
 import type { StorySuggestion } from '$lib/services/ai/suggestions';
 import type { StyleReviewResult } from '$lib/services/ai/styleReviewer';
 import type { EntryRetrievalResult, ActivationTracker } from '$lib/services/ai/entryRetrieval';
 import { SimpleActivationTracker } from '$lib/services/ai/entryRetrieval';
 import { database } from '$lib/services/database';
+
+// Backup for retry functionality - captures state before each user message
+export interface RetryBackup {
+  storyId: string;
+  timestamp: number;
+  // State snapshots (captured BEFORE user action is added)
+  entries: StoryEntry[];
+  characters: Character[];
+  locations: Location[];
+  items: Item[];
+  storyBeats: StoryBeat[];
+  lorebookEntries: Entry[];
+  // The user's input to re-trigger
+  userActionContent: string;
+}
 
 // Error state for retry functionality
 export interface GenerationError {
@@ -43,6 +58,9 @@ class UIStore {
 
   // Error state for retry
   lastGenerationError = $state<GenerationError | null>(null);
+
+  // Retry backup - captures state before each user message for "retry last message" feature
+  retryBackup = $state<RetryBackup | null>(null);
 
   // RPG action choices (displayed after narration)
   actionChoices = $state<ActionChoice[]>([]);
@@ -166,6 +184,57 @@ class UIStore {
 
   clearGenerationError() {
     this.lastGenerationError = null;
+  }
+
+  // Retry backup methods
+
+  /**
+   * Create a backup of the current story state before a user message.
+   * This captures the state BEFORE the user action is added, so we can restore to this point.
+   */
+  createRetryBackup(
+    storyId: string,
+    entries: StoryEntry[],
+    characters: Character[],
+    locations: Location[],
+    items: Item[],
+    storyBeats: StoryBeat[],
+    lorebookEntries: Entry[],
+    userActionContent: string
+  ) {
+    // Clear old backup and create new one
+    this.retryBackup = {
+      storyId,
+      timestamp: Date.now(),
+      // Deep copy arrays to avoid mutation issues
+      entries: [...entries],
+      characters: [...characters],
+      locations: [...locations],
+      items: [...items],
+      storyBeats: [...storyBeats],
+      lorebookEntries: [...lorebookEntries],
+      userActionContent,
+    };
+    console.log('[UI] Retry backup created', {
+      storyId,
+      entriesCount: entries.length,
+      userAction: userActionContent.substring(0, 50),
+    });
+  }
+
+  /**
+   * Clear the retry backup (called when switching stories or if user doesn't want to retry).
+   */
+  clearRetryBackup() {
+    this.retryBackup = null;
+    console.log('[UI] Retry backup cleared');
+  }
+
+  /**
+   * Check if we have a valid retry backup for the current story.
+   */
+  hasRetryBackup(storyId: string): boolean {
+    return this.retryBackup !== null && this.retryBackup.storyId === storyId;
   }
 
   // Action choices methods

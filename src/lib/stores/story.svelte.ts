@@ -944,6 +944,9 @@ class StoryStore {
     this.storyBeats = [];
     this.chapters = [];
     this.checkpoints = [];
+
+    // Clear retry backup since it belongs to the old story
+    ui.clearRetryBackup();
   }
 
   // Update story mode
@@ -1151,6 +1154,52 @@ class StoryStore {
     await database.deleteCheckpoint(checkpointId);
     this.checkpoints = this.checkpoints.filter(cp => cp.id !== checkpointId);
     log('Checkpoint deleted:', checkpointId);
+  }
+
+  /**
+   * Restore story state from a retry backup.
+   * Used by the "retry last message" feature to restore state before a user action
+   * and allow regeneration.
+   */
+  async restoreFromRetryBackup(backup: {
+    entries: StoryEntry[];
+    characters: Character[];
+    locations: Location[];
+    items: Item[];
+    storyBeats: StoryBeat[];
+    lorebookEntries: Entry[];
+  }): Promise<void> {
+    if (!this.currentStory) throw new Error('No story loaded');
+
+    log('Restoring from retry backup...', {
+      entriesCount: backup.entries.length,
+      currentEntriesCount: this.entries.length,
+    });
+
+    // Restore to database
+    await database.restoreRetryBackup(
+      this.currentStory.id,
+      backup.entries,
+      backup.characters,
+      backup.locations,
+      backup.items,
+      backup.storyBeats,
+      backup.lorebookEntries
+    );
+
+    // Update local state
+    this.entries = [...backup.entries];
+    this.characters = [...backup.characters];
+    this.locations = [...backup.locations];
+    this.items = [...backup.items];
+    this.storyBeats = [...backup.storyBeats];
+    this.lorebookEntries = [...backup.lorebookEntries];
+
+    log('Retry backup restored', {
+      entries: this.entries.length,
+      characters: this.characters.length,
+      locations: this.locations.length,
+    });
   }
 
   // Delete a story
