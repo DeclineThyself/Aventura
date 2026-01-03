@@ -162,7 +162,7 @@ class ExportService {
     return true;
   }
 
-  // Import from Aventura format (.avt)
+  // Import from Aventura format (.avt) - uses native file dialog (desktop)
   async importFromAventura(): Promise<{ success: boolean; storyId?: string; error?: string }> {
     const filePath = await open({
       filters: [
@@ -178,6 +178,19 @@ class ExportService {
 
     try {
       const content = await readTextFile(filePath);
+      return this.importFromContent(content);
+    } catch (error) {
+      console.error('Import failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to import file',
+      };
+    }
+  }
+
+  // Import from file content string (for HTML file input / mobile compatibility)
+  async importFromContent(content: string): Promise<{ success: boolean; storyId?: string; error?: string }> {
+    try {
       const data: AventuraExport = JSON.parse(content);
 
       // Validate the import data

@@ -8,6 +8,9 @@
   import type { Template, StoryMode, POV } from '$lib/types';
   import SetupWizard from '../wizard/SetupWizard.svelte';
 
+  // File input for import (HTML-based for mobile compatibility)
+  let importFileInput: HTMLInputElement;
+
   let showNewStoryModal = $state(false);
   let showSetupWizard = $state(false);
   let newStoryTitle = $state('');
@@ -123,18 +126,36 @@
 
   let importError = $state<string | null>(null);
 
-  async function importStory() {
-    importError = null;
-    const result = await exportService.importFromAventura();
+  function triggerImport() {
+    importFileInput?.click();
+  }
 
-    if (result.success && result.storyId) {
-      await story.loadAllStories();
-      await story.loadStory(result.storyId);
-      ui.setActivePanel('story');
-    } else if (result.error) {
-      importError = result.error;
+  async function handleImportFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    importError = null;
+
+    try {
+      const content = await file.text();
+      const result = await exportService.importFromContent(content);
+
+      if (result.success && result.storyId) {
+        await story.loadAllStories();
+        await story.loadStory(result.storyId);
+        ui.setActivePanel('story');
+      } else if (result.error) {
+        importError = result.error;
+        setTimeout(() => importError = null, 5000);
+      }
+    } catch (error) {
+      importError = error instanceof Error ? error.message : 'Failed to read file';
       setTimeout(() => importError = null, 5000);
     }
+
+    // Reset file input for re-selection
+    input.value = '';
   }
 </script>
 
@@ -149,11 +170,18 @@
       <div class="flex items-center gap-2 flex-wrap">
         <button
           class="btn btn-secondary flex items-center gap-1.5 sm:gap-2 min-h-[44px] px-3 sm:px-4 text-sm"
-          onclick={importStory}
+          onclick={triggerImport}
         >
           <Upload class="h-4 w-4 sm:h-5 sm:w-5" />
           <span class="hidden xs:inline">Import</span>
         </button>
+        <input
+          type="file"
+          accept=".avt,.json,application/json,*/*"
+          class="hidden"
+          bind:this={importFileInput}
+          onchange={handleImportFileSelect}
+        />
         <button
           class="btn btn-secondary flex items-center gap-1.5 sm:gap-2 min-h-[44px] px-3 sm:px-4 text-sm"
           onclick={() => showNewStoryModal = true}
